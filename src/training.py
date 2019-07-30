@@ -130,6 +130,7 @@ def convert_example_to_feature(example_row):
 
 
 if __name__=='__main__':
+    global num_labels
     logging.basicConfig(level=logging.INFO)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
