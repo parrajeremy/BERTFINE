@@ -13,8 +13,9 @@ from multiprocessing import Pool, cpu_count
 
 # OPTIONAL: if you want to have more information on what's happening, activate the logger as follows
 import logging
-from src.input import InputFeatures
-from src.processor import *
+#from . import input
+from input import InputFeatures
+from processor import *
 
 def _truncate_seq_pair(tokens_a, tokens_b, max_length):
     """Truncates a sequence pair in place to the maximum length."""
