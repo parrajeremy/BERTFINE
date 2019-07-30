@@ -14,8 +14,49 @@ from multiprocessing import Pool, cpu_count
 # OPTIONAL: if you want to have more information on what's happening, activate the logger as follows
 import logging
 #from . import input
-from input import InputFeatures
-from processor import *
+from .input import InputFeatures
+from .processor import BinaryClassificationProcessor
+
+
+# The input data dir. Should contain the .tsv files (or other data files) for the task.
+DATA_DIR = "../data/"
+
+# Bert pre-trained model selected in the list: bert-base-uncased,
+# bert-large-uncased, bert-base-cased, bert-large-cased, bert-base-multilingual-uncased,
+# bert-base-multilingual-cased, bert-base-chinese.
+BERT_MODEL = 'bert-base-cased'
+
+# The name of the task to train.I'm going to name this 'yelp'.
+TASK_NAME = 'SWA'
+
+# The output directory where the fine-tuned model and checkpoints will be written.
+OUTPUT_DIR = f'outputs/{TASK_NAME}/'
+
+# The directory where the evaluation reports will be written to.
+REPORTS_DIR = f'reports/{TASK_NAME}_evaluation_report/'
+
+# This is where BERT will look for pre-trained models to load parameters from.
+CACHE_DIR = 'cache/'
+
+# The maximum total input sequence length after WordPiece tokenization.
+# Sequences longer than this will be truncated, and sequences shorter than this will be padded.
+MAX_SEQ_LENGTH = 128
+
+TRAIN_BATCH_SIZE = 24
+EVAL_BATCH_SIZE = 32
+LEARNING_RATE = 2e-5
+NUM_TRAIN_EPOCHS = 1
+RANDOM_SEED = 42
+GRADIENT_ACCUMULATION_STEPS = 1
+WARMUP_PROPORTION = 0.1
+OUTPUT_MODE = 'classification'
+
+CONFIG_NAME = "config.json"
+WEIGHTS_NAME = "pytorch_model.bin"
+
+output_mode = OUTPUT_MODE
+
+cache_dir = CACHE_DIR
 
 def _truncate_seq_pair(tokens_a, tokens_b, max_length):
     """Truncates a sequence pair in place to the maximum length."""
@@ -91,45 +132,7 @@ def convert_example_to_feature(example_row):
 if __name__=='__main__':
     logging.basicConfig(level=logging.INFO)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # The input data dir. Should contain the .tsv files (or other data files) for the task.
-    DATA_DIR = "../data/"
 
-    # Bert pre-trained model selected in the list: bert-base-uncased,
-    # bert-large-uncased, bert-base-cased, bert-large-cased, bert-base-multilingual-uncased,
-    # bert-base-multilingual-cased, bert-base-chinese.
-    BERT_MODEL = 'bert-base-cased'
-
-    # The name of the task to train.I'm going to name this 'yelp'.
-    TASK_NAME = 'SWA'
-
-    # The output directory where the fine-tuned model and checkpoints will be written.
-    OUTPUT_DIR = f'outputs/{TASK_NAME}/'
-
-    # The directory where the evaluation reports will be written to.
-    REPORTS_DIR = f'reports/{TASK_NAME}_evaluation_report/'
-
-    # This is where BERT will look for pre-trained models to load parameters from.
-    CACHE_DIR = 'cache/'
-
-    # The maximum total input sequence length after WordPiece tokenization.
-    # Sequences longer than this will be truncated, and sequences shorter than this will be padded.
-    MAX_SEQ_LENGTH = 128
-
-    TRAIN_BATCH_SIZE = 24
-    EVAL_BATCH_SIZE = 32
-    LEARNING_RATE = 2e-5
-    NUM_TRAIN_EPOCHS = 1
-    RANDOM_SEED = 42
-    GRADIENT_ACCUMULATION_STEPS = 1
-    WARMUP_PROPORTION = 0.1
-    OUTPUT_MODE = 'classification'
-
-    CONFIG_NAME = "config.json"
-    WEIGHTS_NAME = "pytorch_model.bin"
-
-    output_mode = OUTPUT_MODE
-
-    cache_dir = CACHE_DIR
 
     if os.path.exists(REPORTS_DIR) and os.listdir(REPORTS_DIR):
         REPORTS_DIR += f'/report_{len(os.listdir(REPORTS_DIR))}'
