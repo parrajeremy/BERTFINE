@@ -13,8 +13,9 @@ from multiprocessing import Pool, cpu_count
 
 # OPTIONAL: if you want to have more information on what's happening, activate the logger as follows
 import logging
-from src.input import InputFeatures
-from src.processor import *
+#from . import input
+from input import InputFeatures
+from processor import *
 
 def _truncate_seq_pair(tokens_a, tokens_b, max_length):
     """Truncates a sequence pair in place to the maximum length."""
@@ -91,7 +92,7 @@ if __name__=='__main__':
     logging.basicConfig(level=logging.INFO)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # The input data dir. Should contain the .tsv files (or other data files) for the task.
-    DATA_DIR = "data/"
+    DATA_DIR = "../data/"
 
     # Bert pre-trained model selected in the list: bert-base-uncased,
     # bert-large-uncased, bert-base-cased, bert-large-cased, bert-base-multilingual-uncased,
