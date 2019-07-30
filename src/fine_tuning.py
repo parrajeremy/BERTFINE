@@ -7,14 +7,16 @@ from torch.nn import CrossEntropyLoss, MSELoss
 from tqdm import tqdm_notebook, trange
 import os
 from pytorch_pretrained_bert import BertTokenizer, BertModel, BertForMaskedLM, BertForSequenceClassification
-from pytorch_pretrained_bert import BertAdam, WarmupLinearSchedule
+from pytorch_pretrained_bert.optimization import BertAdam
 
-from src.training import BERT_MODEL, CACHE_DIR, num_labels, device, optimizer_grouped_parameters, LEARNING_RATE,\
+
+from src.training import BERT_MODEL, CACHE_DIR, num_labels, device, LEARNING_RATE,\
     WARMUP_PROPORTION, num_train_optimization_steps, train_features, TRAIN_BATCH_SIZE, train_examples_len, OUTPUT_MODE, \
     OUTPUT_DIR, NUM_TRAIN_EPOCHS, GRADIENT_ACCUMULATION_STEPS, WEIGHTS_NAME, CONFIG_NAME, tokenizer
 
 if __name__=="__main__":
     logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger()
     # Load pre-trained model (weights)
     model = BertForSequenceClassification.from_pretrained(BERT_MODEL, cache_dir=CACHE_DIR, num_labels=num_labels)
     # model = BertForSequenceClassification.from_pretrained(CACHE_DIR + 'cased_base_bert_pytorch.tar.gz', cache_dir=CACHE_DIR, num_labels=num_labels)
