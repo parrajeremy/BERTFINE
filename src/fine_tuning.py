@@ -10,7 +10,7 @@ from pytorch_pretrained_bert import BertTokenizer, BertModel, BertForMaskedLM, B
 from pytorch_pretrained_bert.optimization import BertAdam
 
 
-from src.training import BERT_MODEL, CACHE_DIR, num_labels, device, LEARNING_RATE,\
+from training import BERT_MODEL, CACHE_DIR, num_labels, device, LEARNING_RATE,\
     WARMUP_PROPORTION, num_train_optimization_steps, train_features, TRAIN_BATCH_SIZE, train_examples_len, OUTPUT_MODE, \
     OUTPUT_DIR, NUM_TRAIN_EPOCHS, GRADIENT_ACCUMULATION_STEPS, WEIGHTS_NAME, CONFIG_NAME, tokenizer
 
