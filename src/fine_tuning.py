@@ -1,5 +1,5 @@
 import torch
-
+import pickle
 import logging
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler, TensorDataset)
 from torch.nn import CrossEntropyLoss, MSELoss
@@ -10,13 +10,38 @@ from pytorch_pretrained_bert import BertTokenizer, BertModel, BertForMaskedLM, B
 from pytorch_pretrained_bert.optimization import BertAdam
 
 
-from training import BERT_MODEL, CACHE_DIR, num_labels, device, LEARNING_RATE,\
-    WARMUP_PROPORTION, num_train_optimization_steps, train_features, TRAIN_BATCH_SIZE, train_examples_len, OUTPUT_MODE, \
-    OUTPUT_DIR, NUM_TRAIN_EPOCHS, GRADIENT_ACCUMULATION_STEPS, WEIGHTS_NAME, CONFIG_NAME, tokenizer
+from training import BERT_MODEL, CACHE_DIR, LEARNING_RATE,DATA_DIR, WARMUP_PROPORTION,  TRAIN_BATCH_SIZE, OUTPUT_MODE, \
+    OUTPUT_DIR, NUM_TRAIN_EPOCHS, GRADIENT_ACCUMULATION_STEPS, WEIGHTS_NAME, CONFIG_NAME, MAX_SEQ_LENGTH, cpu_count,\
+    BinaryClassificationProcessor
 
+def definestuff():
+    global processor
+    global train_examples
+    global train_examples_len
+    global label_list
+    global num_labels
+    global num_train_optimization_steps
+    global tokenizer
+    global label_map
+    global train_examples_for_processing
+    global process_count
 
+    processor = BinaryClassificationProcessor()
+    train_examples = processor.get_train_examples(DATA_DIR)
+    train_examples_len = len(train_examples)
+    label_list = processor.get_labels() # [0, 1] for binary classification
+    num_labels = len(label_list)
+    num_train_optimization_steps = int(
+        train_examples_len / TRAIN_BATCH_SIZE / GRADIENT_ACCUMULATION_STEPS) * NUM_TRAIN_EPOCHS
+    # Load pre-trained model tokenizer (vocabulary)
+    tokenizer = BertTokenizer.from_pretrained('bert-base-cased', do_lower_case=False)
+    label_map = {label: i for i, label in enumerate(label_list)}
+    train_examples_for_processing = [(example, label_map, MAX_SEQ_LENGTH, tokenizer, OUTPUT_MODE) for example in train_examples]
+    process_count = cpu_count() - 1
 
 if __name__=="__main__":
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    definestuff()
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger()
     # Load pre-trained model (weights)
@@ -40,6 +65,9 @@ if __name__=="__main__":
     nb_tr_steps = 0
     tr_loss = 0
 
+    print('Starting Training')
+    with open(DATA_DIR + "train_features.pkl", "rb") as f:
+        train_features = pickle.load(f)
     logger.info("***** Running training *****")
     logger.info("  Num examples = %d", train_examples_len)
     logger.info("  Batch size = %d", TRAIN_BATCH_SIZE)

@@ -47,9 +47,7 @@ OUTPUT_MODE = 'classification'
 
 CONFIG_NAME = "config.json"
 WEIGHTS_NAME = "pytorch_model.bin"
-
 output_mode = OUTPUT_MODE
-
 cache_dir = CACHE_DIR
 
 global num_labels
@@ -61,7 +59,6 @@ global tokenizer
 
 def _truncate_seq_pair(tokens_a, tokens_b, max_length):
     """Truncates a sequence pair in place to the maximum length."""
-
     # This is a simple heuristic which will always truncate the longer sequence
     # one token at a time. This makes more sense than truncating an equal percent
     # of tokens from each, since if one sequence is very short then each token
@@ -129,6 +126,30 @@ def convert_example_to_feature(example_row):
                          segment_ids=segment_ids,
                          label_id=label_id)
 
+def definestuff():
+    global processor
+    global train_examples
+    global train_examples_len
+    global label_list
+    global num_labels
+    global num_train_optimization_steps
+    global tokenizer
+    global label_map
+    global train_examples_for_processing
+    global process_count
+
+    processor = BinaryClassificationProcessor()
+    train_examples = processor.get_train_examples(DATA_DIR)
+    train_examples_len = len(train_examples)
+    label_list = processor.get_labels() # [0, 1] for binary classification
+    num_labels = len(label_list)
+    num_train_optimization_steps = int(
+        train_examples_len / TRAIN_BATCH_SIZE / GRADIENT_ACCUMULATION_STEPS) * NUM_TRAIN_EPOCHS
+    # Load pre-trained model tokenizer (vocabulary)
+    tokenizer = BertTokenizer.from_pretrained('bert-base-cased', do_lower_case=False)
+    label_map = {label: i for i, label in enumerate(label_list)}
+    train_examples_for_processing = [(example, label_map, MAX_SEQ_LENGTH, tokenizer, OUTPUT_MODE) for example in train_examples]
+    process_count = cpu_count() - 1
 
 if __name__=='__main__':
     logging.basicConfig(level=logging.INFO)
@@ -150,23 +171,24 @@ if __name__=='__main__':
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
 
-    processor = BinaryClassificationProcessor()
-    train_examples = processor.get_train_examples(DATA_DIR)
-    train_examples_len = len(train_examples)
-
-    label_list = processor.get_labels() # [0, 1] for binary classification
-    num_labels = len(label_list)
-
-    num_train_optimization_steps = int(
-        train_examples_len / TRAIN_BATCH_SIZE / GRADIENT_ACCUMULATION_STEPS) * NUM_TRAIN_EPOCHS
-
-    # Load pre-trained model tokenizer (vocabulary)
-    tokenizer = BertTokenizer.from_pretrained('bert-base-cased', do_lower_case=False)
-
-    label_map = {label: i for i, label in enumerate(label_list)}
-    train_examples_for_processing = [(example, label_map, MAX_SEQ_LENGTH, tokenizer, OUTPUT_MODE) for example in train_examples]
-
-    process_count = cpu_count() - 1
+    definestuff()
+    # processor = BinaryClassificationProcessor()
+    # train_examples = processor.get_train_examples(DATA_DIR)
+    # train_examples_len = len(train_examples)
+    #
+    # label_list = processor.get_labels() # [0, 1] for binary classification
+    # num_labels = len(label_list)
+    #
+    # num_train_optimization_steps = int(
+    #     train_examples_len / TRAIN_BATCH_SIZE / GRADIENT_ACCUMULATION_STEPS) * NUM_TRAIN_EPOCHS
+    #
+    # # Load pre-trained model tokenizer (vocabulary)
+    # tokenizer = BertTokenizer.from_pretrained('bert-base-cased', do_lower_case=False)
+    #
+    # label_map = {label: i for i, label in enumerate(label_list)}
+    # train_examples_for_processing = [(example, label_map, MAX_SEQ_LENGTH, tokenizer, OUTPUT_MODE) for example in train_examples]
+    #
+    # process_count = cpu_count() - 1
 
     print(f'Preparing to convert {train_examples_len} examples..')
     print(f'Spawning {process_count} processes..')
