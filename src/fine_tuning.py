@@ -14,6 +14,8 @@ from training import BERT_MODEL, CACHE_DIR, num_labels, device, LEARNING_RATE,\
     WARMUP_PROPORTION, num_train_optimization_steps, train_features, TRAIN_BATCH_SIZE, train_examples_len, OUTPUT_MODE, \
     OUTPUT_DIR, NUM_TRAIN_EPOCHS, GRADIENT_ACCUMULATION_STEPS, WEIGHTS_NAME, CONFIG_NAME, tokenizer
 
+
+
 if __name__=="__main__":
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger()

@@ -57,7 +57,17 @@ WEIGHTS_NAME = "pytorch_model.bin"
 output_mode = OUTPUT_MODE
 
 cache_dir = CACHE_DIR
-num_labels = None
+
+global num_labels
+global BERT_MODEL
+global CACHE_DIR
+global device
+global num_train_optimization_steps
+global train_features
+global train_examples_len
+global OUTPUT_DIR
+global tokenizer
+
 def _truncate_seq_pair(tokens_a, tokens_b, max_length):
     """Truncates a sequence pair in place to the maximum length."""
 
@@ -130,7 +140,6 @@ def convert_example_to_feature(example_row):
 
 
 if __name__=='__main__':
-    global num_labels
     logging.basicConfig(level=logging.INFO)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
