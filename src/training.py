@@ -57,7 +57,7 @@ WEIGHTS_NAME = "pytorch_model.bin"
 output_mode = OUTPUT_MODE
 
 cache_dir = CACHE_DIR
-
+num_labels = None
 def _truncate_seq_pair(tokens_a, tokens_b, max_length):
     """Truncates a sequence pair in place to the maximum length."""
 
