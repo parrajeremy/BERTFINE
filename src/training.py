@@ -3,7 +3,7 @@ import pickle
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler, TensorDataset)
 from torch.nn import CrossEntropyLoss, MSELoss
 
-from tqdm import tqdm_notebook, trange
+from tqdm import tqdm_notebook, trange, tqdm
 import os
 from pytorch_pretrained_bert import BertTokenizer, BertModel, BertForMaskedLM, BertForSequenceClassification
 from pytorch_pretrained_bert.optimization import BertAdam, WarmupLinearSchedule
@@ -13,9 +13,9 @@ from multiprocessing import Pool, cpu_count
 
 # OPTIONAL: if you want to have more information on what's happening, activate the logger as follows
 import logging
-#from . import input
-from .input import InputFeatures
-from .processor import BinaryClassificationProcessor
+
+from input import InputFeatures
+from processor import BinaryClassificationProcessor
 
 
 # The input data dir. Should contain the .tsv files (or other data files) for the task.
@@ -171,7 +171,7 @@ if __name__=='__main__':
     print(f'Preparing to convert {train_examples_len} examples..')
     print(f'Spawning {process_count} processes..')
     with Pool(process_count) as p:
-        train_features = list(tqdm_notebook(p.imap(convert_example_to_feature, train_examples_for_processing), total=train_examples_len))
+        train_features = list(tqdm(p.imap(convert_example_to_feature, train_examples_for_processing), total=train_examples_len))
 
     with open(DATA_DIR + "train_features.pkl", "wb") as f:
         pickle.dump(train_features, f)
