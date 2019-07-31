@@ -24,7 +24,7 @@ DATA_DIR = "../data/"
 # bert-large-uncased, bert-base-cased, bert-large-cased, bert-base-multilingual-uncased,
 # bert-base-multilingual-cased, bert-base-chinese.
 BERT_MODEL = 'bert-base-cased'
-# The name of the task to train.I'm going to name this 'yelp'.
+# The name of the task to train.
 TASK_NAME = 'SWA'
 # The output directory where the fine-tuned model and checkpoints will be written.
 OUTPUT_DIR = f'outputs/{TASK_NAME}/'
