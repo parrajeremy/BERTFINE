@@ -162,7 +162,7 @@ if __name__ ==  '__main__':
             preds[0] = np.append(
                 preds[0], logits.detach().cpu().numpy(), axis=0)
 
-        eval_loss = eval_loss / nb_eval_steps
+    eval_loss = eval_loss / nb_eval_steps
     preds = preds[0]
     if OUTPUT_MODE == "classification":
         preds = np.argmax(preds, axis=1)
