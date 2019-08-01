@@ -72,35 +72,40 @@ def compute_metrics(task_name, labels, preds):
 
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
-if os.path.exists(REPORTS_DIR) and os.listdir(REPORTS_DIR):
-    REPORTS_DIR += f'/report_{len(os.listdir(REPORTS_DIR))}'
-    os.makedirs(REPORTS_DIR)
-if not os.path.exists(REPORTS_DIR):
-    os.makedirs(REPORTS_DIR)
-    REPORTS_DIR += f'/report_{len(os.listdir(REPORTS_DIR))}'
-    os.makedirs(REPORTS_DIR)
-
-
-# Load pre-trained model tokenizer (vocabulary)
-tokenizer = BertTokenizer.from_pretrained(OUTPUT_DIR + 'vocab.txt', do_lower_case=False)
-
-processor = BinaryClassificationProcessor()
-eval_examples = processor.get_dev_examples(DATA_DIR)
-label_list = processor.get_labels() # [0, 1] for binary classification
-num_labels = len(label_list)
-eval_examples_len = len(eval_examples)
-
-label_map = {label: i for i, label in enumerate(label_list)}
-eval_examples_for_processing = [(example, label_map, MAX_SEQ_LENGTH, tokenizer, OUTPUT_MODE) for example in eval_examples]
-
-process_count = cpu_count() - 1
 
 if __name__ ==  '__main__':
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger()
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+    if os.path.exists(REPORTS_DIR) and os.listdir(REPORTS_DIR):
+        REPORTS_DIR += f'/report_{len(os.listdir(REPORTS_DIR))}'
+        os.makedirs(REPORTS_DIR)
+    if not os.path.exists(REPORTS_DIR):
+        os.makedirs(REPORTS_DIR)
+        REPORTS_DIR += f'/report_{len(os.listdir(REPORTS_DIR))}'
+        os.makedirs(REPORTS_DIR)
+
+
+    # Load pre-trained model tokenizer (vocabulary)
+    tokenizer = BertTokenizer.from_pretrained(OUTPUT_DIR + 'vocab.txt', do_lower_case=False)
+
+    processor = BinaryClassificationProcessor()
+    eval_examples = processor.get_dev_examples(DATA_DIR)
+    label_list = processor.get_labels() # [0, 1] for binary classification
+    num_labels = len(label_list)
+    eval_examples_len = len(eval_examples)
+
+    label_map = {label: i for i, label in enumerate(label_list)}
+    eval_examples_for_processing = [(example, label_map, MAX_SEQ_LENGTH, tokenizer, OUTPUT_MODE) for example in eval_examples]
+
+    process_count = cpu_count() - 1
+
+
+
     print(f'Preparing to convert {eval_examples_len} examples..')
     print(f'Spawning {process_count} processes..')
     with Pool(process_count) as p:
@@ -128,36 +133,36 @@ if __name__ ==  '__main__':
     model.to(device)
 
     model.eval()
-eval_loss = 0
-nb_eval_steps = 0
-preds = []
+    eval_loss = 0
+    nb_eval_steps = 0
+    preds = []
 
-for input_ids, input_mask, segment_ids, label_ids in tqdm(eval_dataloader, desc="Evaluating"):
-    input_ids = input_ids.to(device)
-    input_mask = input_mask.to(device)
-    segment_ids = segment_ids.to(device)
-    label_ids = label_ids.to(device)
+    for input_ids, input_mask, segment_ids, label_ids in tqdm(eval_dataloader, desc="Evaluating"):
+        input_ids = input_ids.to(device)
+        input_mask = input_mask.to(device)
+        segment_ids = segment_ids.to(device)
+        label_ids = label_ids.to(device)
 
-    with torch.no_grad():
-        logits = model(input_ids, segment_ids, input_mask, labels=None)
+        with torch.no_grad():
+            logits = model(input_ids, segment_ids, input_mask, labels=None)
 
-    # create eval loss and other metric required by the task
-    if OUTPUT_MODE == "classification":
-        loss_fct = CrossEntropyLoss()
-        tmp_eval_loss = loss_fct(logits.view(-1, num_labels), label_ids.view(-1))
-    elif OUTPUT_MODE == "regression":
-        loss_fct = MSELoss()
-        tmp_eval_loss = loss_fct(logits.view(-1), label_ids.view(-1))
+        # create eval loss and other metric required by the task
+        if OUTPUT_MODE == "classification":
+            loss_fct = CrossEntropyLoss()
+            tmp_eval_loss = loss_fct(logits.view(-1, num_labels), label_ids.view(-1))
+        elif OUTPUT_MODE == "regression":
+            loss_fct = MSELoss()
+            tmp_eval_loss = loss_fct(logits.view(-1), label_ids.view(-1))
 
-    eval_loss += tmp_eval_loss.mean().item()
-    nb_eval_steps += 1
-    if len(preds) == 0:
-        preds.append(logits.detach().cpu().numpy())
-    else:
-        preds[0] = np.append(
-            preds[0], logits.detach().cpu().numpy(), axis=0)
+        eval_loss += tmp_eval_loss.mean().item()
+        nb_eval_steps += 1
+        if len(preds) == 0:
+            preds.append(logits.detach().cpu().numpy())
+        else:
+            preds[0] = np.append(
+                preds[0], logits.detach().cpu().numpy(), axis=0)
 
-    eval_loss = eval_loss / nb_eval_steps
+        eval_loss = eval_loss / nb_eval_steps
     preds = preds[0]
     if OUTPUT_MODE == "classification":
         preds = np.argmax(preds, axis=1)
