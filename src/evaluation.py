@@ -53,25 +53,27 @@ OUTPUT_MODE = 'classification'
 CONFIG_NAME = "config.json"
 WEIGHTS_NAME = "pytorch_model.bin"
 
+
 def get_eval_report(task_name, labels, preds):
     mcc = matthews_corrcoef(labels, preds)
-    tn, fp, fn, tp = confusion_matrix(labels, preds).ravel()
-    return {
-        "task": task_name,
-        "mcc": mcc,
-        "tp": tp,
-        "tn": tn,
-        "fp": fp,
-        "fn": fn
-    }
+    all = confusion_matrix(labels, preds).ravel()
+    information = {i: x for i, x in enumerate(all)}
+    information['task'] = task_name
+    information['mcc'] = mcc
+    return information
+    # return {
+    #     "task": task_name,
+    #     "mcc": mcc,
+    #     "tp": tp,
+    #     "tn": tn,
+    #     "fp": fp,
+    #     "fn": fn
+    # }
+
 
 def compute_metrics(task_name, labels, preds):
     assert len(preds) == len(labels)
     return get_eval_report(task_name, labels, preds)
-
-
-
-
 
 
 if __name__ ==  '__main__':
